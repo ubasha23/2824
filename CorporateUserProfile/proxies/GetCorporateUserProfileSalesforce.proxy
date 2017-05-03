@@ -1,0 +1,1501 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml-fragment xmlns:ser="http://www.bea.com/wli/sb/services" xmlns:tran="http://www.bea.com/wli/sb/transports" xmlns:env="http://www.bea.com/wli/config/env" xmlns:http="http://www.bea.com/wli/sb/transports/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:con="http://www.bea.com/wli/sb/pipeline/config" xmlns:con1="http://www.bea.com/wli/sb/stages/config" xmlns:con2="http://www.bea.com/wli/sb/typesystem/config" xmlns:con3="http://www.bea.com/wli/sb/stages/transform/config" xmlns:con4="http://www.bea.com/wli/sb/stages/logging/config">
+  <ser:coreEntry isProxy="true" isEnabled="true">
+    <ser:binding type="SOAP" isSoap12="false" xsi:type="con:SoapBindingType" xmlns:con="http://www.bea.com/wli/sb/services/bindings/config">
+      <con:wsdl ref="PortalInterfaces/wsdl/GetCorporateUserProfile"/>
+      <con:binding>
+        <con:name>GetCorporateUserProfileSOAP</con:name>
+        <con:namespace>http://www.example.org/GetCorporateUserProfile/</con:namespace>
+      </con:binding>
+      <con:selector type="SOAP body"/>
+    </ser:binding>
+    <ser:monitoring isEnabled="false">
+      <ser:aggregationInterval>10</ser:aggregationInterval>
+      <ser:pipelineMonitoringLevel>Pipeline</ser:pipelineMonitoringLevel>
+    </ser:monitoring>
+    <ser:reporting>true</ser:reporting>
+    <ser:logging isEnabled="true">
+      <ser:logLevel>debug</ser:logLevel>
+    </ser:logging>
+    <ser:sla-alerting isEnabled="true">
+      <ser:alertLevel>normal</ser:alertLevel>
+    </ser:sla-alerting>
+    <ser:pipeline-alerting isEnabled="true">
+      <ser:alertLevel>normal</ser:alertLevel>
+    </ser:pipeline-alerting>
+    <ser:ws-policy>
+      <ser:binding-mode>wsdl-policy-attachments</ser:binding-mode>
+    </ser:ws-policy>
+  </ser:coreEntry>
+  <ser:endpointConfig>
+    <tran:provider-id>http</tran:provider-id>
+    <tran:inbound>true</tran:inbound>
+    <tran:URI>
+      <env:value>/CorporateUserProfile/GetCorporateUserProfile</env:value>
+    </tran:URI>
+    <tran:inbound-properties/>
+    <tran:all-headers>false</tran:all-headers>
+    <tran:provider-specific>
+      <http:inbound-properties/>
+    </tran:provider-specific>
+  </ser:endpointConfig>
+  <ser:router errorHandler="_onErrorHandler-5620955052184608310--63e83776.13e457c6dac.-7fbb">
+    <con:pipeline type="request" name="GetCorporateUserProfile pipeline_request">
+      <con:stage name="Setup">
+        <con:context>
+          <con1:varNsDecl namespace="http://com.finnair" prefix="com"/>
+          <con2:variable name="readRS" path="$body/AMA_ProfileReadRQ" asChild="false">
+            <con2:schema ref="PortalInterfaces/schema/AMA_ProfileReadRQ" element="AMA_ProfileReadRQ"/>
+          </con2:variable>
+        </con:context>
+        <con:actions>
+          <con3:assign varName="startTimestamp" xmlns:con2="http://www.bea.com/wli/sb/stages/logging/config" xmlns:con4="http://www.bea.com/wli/sb/pipeline/config" xmlns:aler="http://www.bea.com/wli/monitoring/alert">
+            <con1:id>_ActionId-5620955052184608310--63e83776.13e457c6dac.-7fee</con1:id>
+            <con3:expr>
+              <con:xqueryText xmlns:con="http://www.bea.com/wli/sb/stages/config">current-dateTime()</con:xqueryText>
+            </con3:expr>
+          </con3:assign>
+          <con3:ifThenElse>
+            <con1:id>_ActionId-5620955052184608310--63e83776.13e457c6dac.-7e84</con1:id>
+            <con3:case>
+              <con3:condition>
+                <con1:xqueryConditionExpr>
+                  <con1:compExpr operator="!=">
+                    <con1:leftPath>$body/com:AMA_ProfileReadRQ/com:ReadRequests/com:ProfileReadRequest/@ProfileType</con1:leftPath>
+                    <con1:rightPath>"1"</con1:rightPath>
+                  </con1:compExpr>
+                </con1:xqueryConditionExpr>
+              </con3:condition>
+              <con3:actions>
+                <con3:Error>
+                  <con1:id>_ActionId-5620955052184608310--63e83776.13e457c6dac.-7e68</con1:id>
+                  <con3:errCode>90</con3:errCode>
+                  <con3:message>Invalid Profile Type</con3:message>
+                </con3:Error>
+              </con3:actions>
+            </con3:case>
+          </con3:ifThenElse>
+        </con:actions>
+      </con:stage>
+      <con:stage name="Call Salesforce" errorHandler="_onErrorHandler-396470764332634078-33233468.13e4fe0c5e2.-7ed6">
+        <con:context>
+          <con1:userNsDecl namespace="http://www.bea.com/wli/sb/services/security/config" prefix="con"/>
+          <con1:userNsDecl namespace="http://siebel.com/CustomUI" prefix="cus"/>
+          <con1:varNsDecl namespace="http://com.finnair" prefix="com"/>
+        </con:context>
+        <con:actions>
+          <con3:wsCallout>
+            <con1:id>_ActionId-3587372809334780688--2e9df170.1405cdffe1a.-7f3b</con1:id>
+            <con3:service xsi:type="ref:ProxyRef" ref="SalesForce/proxyservices/SalesforceCorporatePortalServices" xmlns:ref="http://www.bea.com/wli/sb/reference"/>
+            <con3:operation>corporateUserQuery</con3:operation>
+            <con3:request>
+              <con3:body>$getInfoRQ</con3:body>
+            </con3:request>
+            <con3:response>
+              <con3:body>getInfoRS</con3:body>
+            </con3:response>
+            <con3:requestTransform>
+              <con3:assign varName="getInfoRQ">
+                <con1:id>_ActionId-3587372809334780688--2e9df170.1405cdffe1a.-7f38</con1:id>
+                <con3:expr>
+                  <con1:xqueryTransform>
+                    <con1:resource ref="CorporateUserProfile/transformations/Req_GetInfo_Salesforce"/>
+                    <con1:param name="request">
+                      <con1:path>$body/com:AMA_ProfileReadRQ</con1:path>
+                    </con1:param>
+                  </con1:xqueryTransform>
+                </con3:expr>
+              </con3:assign>
+            </con3:requestTransform>
+            <con3:responseTransform/>
+          </con3:wsCallout>
+        </con:actions>
+      </con:stage>
+    </con:pipeline>
+    <con:pipeline type="response" name="GetCorporateUserProfile pipeline_response">
+      <con:stage name="Create Response" errorHandler="_onErrorHandler-396470764332634078-33233468.13e4fe0c5e2.-7e9a">
+        <con:context>
+          <con1:userNsDecl namespace="http://www.siebel.com/xml/AYContactInfoIO" prefix="ay"/>
+          <con1:userNsDecl namespace="http://www.bea.com/wli/sb/services/security/config" prefix="con"/>
+          <con1:userNsDecl namespace="http://siebel.com/CustomUI" prefix="cus"/>
+          <con1:userNsDecl namespace="http://com.finnair" prefix="com"/>
+          <con1:userNsDecl namespace="http://soap.sforce.com/schemas/class/PortalServicesUserProfile" prefix="por1"/>
+          <con1:userNsDecl namespace="http://soap.sforce.com/schemas/class/PortalServices" prefix="por"/>
+        </con:context>
+        <con:actions>
+          <con3:assign varName="nationalities">
+            <con1:id>_ActionId-6935104532040219801-1e9aa36a.13e54f2494c.-7fd6</con1:id>
+            <con3:expr>
+              <con1:xqueryTransform>
+                <con1:resource ref="Common/transformations/NationalitiesDVM"/>
+              </con1:xqueryTransform>
+            </con3:expr>
+          </con3:assign>
+          <con3:ifThenElse>
+            <con1:id>_ActionId-7996207468466675986--46addd60.1412c1bc126.-7edc</con1:id>
+            <con3:case>
+              <con3:condition>
+                <con1:xqueryText>not(fn:empty($getInfoRS/por:result/por1:ListOfAyContactServicesIo/por1:Nationality/text()))</con1:xqueryText>
+              </con3:condition>
+              <con3:actions>
+                <con3:assign varName="nationality">
+                  <con1:id>_ActionId-7996207468466675986--46addd60.1412c1bc126.-7eda</con1:id>
+                  <con3:expr>
+                    <con1:xqueryTransform>
+                      <con1:resource ref="Common/transformations/DVMFunction"/>
+                      <con1:param name="targetColumnName">
+                        <con1:path>"ISO-3166-1 alpha-2"</con1:path>
+                      </con1:param>
+                      <con1:param name="defaultValue">
+                        <con1:path>""</con1:path>
+                      </con1:param>
+                      <con1:param name="dvmTable">
+                        <con1:path>$nationalities</con1:path>
+                      </con1:param>
+                      <con1:param name="sourceColumnName">
+                        <con1:path>"Siebel Citizenship value"</con1:path>
+                      </con1:param>
+                      <con1:param name="sourceValue">
+                        <con1:path>$getInfoRS/por:result/por1:ListOfAyContactServicesIo/por1:Nationality/text()</con1:path>
+                      </con1:param>
+                    </con1:xqueryTransform>
+                  </con3:expr>
+                </con3:assign>
+              </con3:actions>
+            </con3:case>
+            <con3:default>
+              <con3:assign varName="nationality">
+                <con1:id>_ActionId-7996207468466675986--46addd60.1412c1bc126.-7ea2</con1:id>
+                <con3:expr>
+                  <con1:xqueryText>""</con1:xqueryText>
+                </con3:expr>
+              </con3:assign>
+            </con3:default>
+          </con3:ifThenElse>
+          <con3:ifThenElse>
+            <con1:id>_ActionId-4562842763342288871--2cfc08af.14149f204ef.-7d7c</con1:id>
+            <con3:case>
+              <con3:condition>
+                <con1:xqueryText>$body/com:AMA_ProfileReadRQ/com:UniqueID/@Type != "21" or $body/com:AMA_ProfileReadRQ/com:ExternalID/@Type != "21"</con1:xqueryText>
+              </con3:condition>
+              <con3:actions>
+                <con3:assign varName="filter">
+                  <con1:id>_ActionId-4562842763342288871--2cfc08af.14149f204ef.-7d34</con1:id>
+                  <con3:expr>
+                    <con1:xqueryText>fn:false()</con1:xqueryText>
+                  </con3:expr>
+                </con3:assign>
+              </con3:actions>
+            </con3:case>
+            <con3:default>
+              <con3:assign varName="filter">
+                <con1:id>_ActionId-4562842763342288871--2cfc08af.14149f204ef.-7d60</con1:id>
+                <con3:expr>
+                  <con1:xqueryText>fn:true()</con1:xqueryText>
+                </con3:expr>
+              </con3:assign>
+            </con3:default>
+          </con3:ifThenElse>
+          <con3:ifThenElse>
+            <con1:id>_ActionId-2730476813083461335-7a6509c6.1416e688e1c.-7d28</con1:id>
+            <con3:case>
+              <con3:condition>
+                <con1:xqueryText>fn:lower-case(data($getInfoRS/por:result/por1:StatusCode)) = "ok" and 
+fn:not(fn:exists($getInfoRS/por:result/por1:ListOfAyContactServicesIo))</con1:xqueryText>
+              </con3:condition>
+              <con3:actions>
+                <con3:assign varName="response">
+                  <con1:id>_ActionId-2730476813083461335-7a6509c6.1416e688e1c.-7d10</con1:id>
+                  <con3:expr>
+                    <con1:xqueryText>&lt;com:AMA_ProfileReadRS Version="12.2">
+	&lt;com:Errors>
+    	&lt;Error Type="21" ShortText=" NO PROFILE FOUND MATCHING THIS SEARCH CRITERIA" Code="9.CGG" />
+    &lt;/com:Errors>
+&lt;/com:AMA_ProfileReadRS></con1:xqueryText>
+                  </con3:expr>
+                </con3:assign>
+              </con3:actions>
+            </con3:case>
+            <con3:default>
+              <con3:assign varName="response">
+                <con1:id>_ActionId-2730476813083461335-7a6509c6.1416e688e1c.-7d26</con1:id>
+                <con3:expr>
+                  <con1:xqueryTransform>
+                    <con1:resource ref="CorporateUserProfile/transformations/Res_GetInfo_Salesforce"/>
+                    <con1:param name="nationality">
+                      <con1:path>$nationality</con1:path>
+                    </con1:param>
+                    <con1:param name="filter">
+                      <con1:path>$filter</con1:path>
+                    </con1:param>
+                    <con1:param name="response">
+                      <con1:path>$getInfoRS</con1:path>
+                    </con1:param>
+                  </con1:xqueryTransform>
+                </con3:expr>
+              </con3:assign>
+            </con3:default>
+          </con3:ifThenElse>
+          <con3:replace varName="body" contents-only="true">
+            <con1:id>_ActionId-6935104532040219801-1e9aa36a.13e54f2494c.-7fd3</con1:id>
+            <con3:location>
+              <con1:xpathText>.</con1:xpathText>
+            </con3:location>
+            <con3:expr>
+              <con1:xqueryText>$response</con1:xqueryText>
+            </con3:expr>
+          </con3:replace>
+        </con:actions>
+      </con:stage>
+      <con:stage name="Monitoring">
+        <con:comment/>
+        <con5:context xmlns:con="http://www.bea.com/wli/sb/stages/config" xmlns:con3="http://www.bea.com/wli/sb/pipeline/config" xmlns:con2="http://www.bea.com/wli/sb/stages/transform/config" xmlns:con5="http://www.bea.com/wli/sb/pipeline/config" xmlns:con4="http://www.bea.com/wli/sb/stages/alert/config" xmlns:aler="http://www.bea.com/wli/monitoring/alert" xmlns:con1="http://www.bea.com/wli/sb/typesystem/config">
+          <con6:varNsDecl prefix="com" namespace="http://com.finnair" xmlns:con6="http://www.bea.com/wli/sb/stages/config"/>
+          <con6:varNsDecl prefix="prof" namespace="http://com.finnair/profileProcessing/" xmlns:con6="http://www.bea.com/wli/sb/stages/config"/>
+        </con5:context>
+        <con5:actions xmlns:con="http://www.bea.com/wli/sb/stages/config" xmlns:con3="http://www.bea.com/wli/sb/pipeline/config" xmlns:con2="http://www.bea.com/wli/sb/stages/transform/config" xmlns:con5="http://www.bea.com/wli/sb/pipeline/config" xmlns:con4="http://www.bea.com/wli/sb/stages/alert/config" xmlns:aler="http://www.bea.com/wli/monitoring/alert" xmlns:con1="http://www.bea.com/wli/sb/typesystem/config">
+          <con4:route xmlns:con4="http://www.bea.com/wli/sb/stages/publish/config">
+            <con6:id xmlns:con6="http://www.bea.com/wli/sb/stages/config">_ActionId-5620955052184608310--63e83776.13e457c6dac.-7fe9</con6:id>
+            <con4:service ref="GoogleAnalytics/businessservice/Monitoring" xsi:type="ref:BusinessServiceRef" xmlns:ref="http://www.bea.com/wli/sb/reference"/>
+            <con4:operation>monitor</con4:operation>
+            <con4:outboundTransform>
+              <con2:replace varName="body" contents-only="true">
+                <con6:id xmlns:con6="http://www.bea.com/wli/sb/stages/config">_ActionId-5620955052184608310--63e83776.13e457c6dac.-7fe8</con6:id>
+                <con2:location>
+                  <con6:xpathText xmlns:con6="http://www.bea.com/wli/sb/stages/config">.</con6:xpathText>
+                </con2:location>
+                <con2:expr>
+                  <con6:xqueryTransform xmlns:con6="http://www.bea.com/wli/sb/stages/config">
+                    <con6:resource ref="GoogleAnalytics/transformations/XQ_Req_Monitoring"/>
+                    <con6:param name="startTimestamp">
+                      <con6:path>$startTimestamp</con6:path>
+                    </con6:param>
+                    <con6:param name="inbound">
+                      <con6:path>$inbound</con6:path>
+                    </con6:param>
+                  </con6:xqueryTransform>
+                </con2:expr>
+              </con2:replace>
+            </con4:outboundTransform>
+          </con4:route>
+          <con1:reply xmlns:con3="http://www.bea.com/wli/sb/stages/transform/config" xmlns:con="http://www.bea.com/wli/sb/pipeline/config" xmlns:con2="http://www.bea.com/wli/sb/typesystem/config" xmlns:con4="http://www.bea.com/wli/sb/stages/logging/config" xmlns:con1="http://www.bea.com/wli/sb/stages/config">
+            <con1:id>_ActionId-6935104532040219801-1e9aa36a.13e54f2494c.-7fcd</con1:id>
+          </con1:reply>
+        </con5:actions>
+      </con:stage>
+    </con:pipeline>
+    <con:pipeline type="error" name="_onErrorHandler-5620955052184608310--63e83776.13e457c6dac.-7fbb">
+      <con:stage name="Generic Error Handler">
+        <con1:context xmlns:con="http://www.bea.com/wli/sb/stages/config" xmlns:con3="http://www.bea.com/wli/sb/stages/alert/config" xmlns:con2="http://www.bea.com/wli/sb/pipeline/config" xmlns:aler="http://www.bea.com/wli/monitoring/alert" xmlns:con1="http://www.bea.com/wli/sb/pipeline/config">
+          <con5:userNsDecl prefix="siebelf" namespace="http://www.siebel.com/ws/fault" xmlns:con5="http://www.bea.com/wli/sb/stages/config"/>
+          <con5:varNsDecl prefix="com" namespace="http://com.finnair" xmlns:con5="http://www.bea.com/wli/sb/stages/config"/>
+          <con5:varNsDecl prefix="mem" namespace="http://com.finnair/MemberProfileRetrieve/" xmlns:con5="http://www.bea.com/wli/sb/stages/config"/>
+        </con1:context>
+        <con1:actions xmlns:con="http://www.bea.com/wli/sb/stages/config" xmlns:con3="http://www.bea.com/wli/sb/stages/alert/config" xmlns:con2="http://www.bea.com/wli/sb/pipeline/config" xmlns:aler="http://www.bea.com/wli/monitoring/alert" xmlns:con1="http://www.bea.com/wli/sb/pipeline/config">
+          <con4:log>
+            <con5:id xmlns:con5="http://www.bea.com/wli/sb/stages/config">_ActionId-515672032373458334--7af4d0c7.140f20fe443.-7fb2</con5:id>
+            <con4:logLevel>error</con4:logLevel>
+            <con4:expr>
+              <con5:xqueryText xmlns:con5="http://www.bea.com/wli/sb/stages/config">$fault</con5:xqueryText>
+            </con4:expr>
+            <con4:message>User Profile Error Fault</con4:message>
+          </con4:log>
+          <con4:assign varName="stageText" xmlns:con4="http://www.bea.com/wli/sb/stages/transform/config">
+            <con5:id xmlns:con5="http://www.bea.com/wli/sb/stages/config">_ActionId-5620955052184608310--63e83776.13e457c6dac.-7fa9</con5:id>
+            <con4:expr>
+              <con5:xqueryText xmlns:con5="http://www.bea.com/wli/sb/stages/config">fn:concat("Error While ",$fault/ctx:location/ctx:stage/text())</con5:xqueryText>
+            </con4:expr>
+          </con4:assign>
+          <con4:ifThenElse xmlns:con4="http://www.bea.com/wli/sb/stages/transform/config">
+            <con5:id xmlns:con5="http://www.bea.com/wli/sb/stages/config">_ActionId-5620955052184608310--63e83776.13e457c6dac.-7fa8</con5:id>
+            <con4:case>
+              <con4:condition>
+                <con5:xqueryText xmlns:con5="http://www.bea.com/wli/sb/stages/config">fn:local-name($body/*[1])='Fault'</con5:xqueryText>
+              </con4:condition>
+              <con4:actions>
+                <con4:ifThenElse>
+                  <con5:id xmlns:con5="http://www.bea.com/wli/sb/stages/config">_ActionId-5620955052184608310--63e83776.13e457c6dac.-7fa7</con5:id>
+                  <con4:case>
+                    <con4:condition>
+                      <con5:xqueryText xmlns:con5="http://www.bea.com/wli/sb/stages/config">$body/soap-env:Fault/detail/siebelf:siebdetail</con5:xqueryText>
+                    </con4:condition>
+                    <con4:actions>
+                      <con4:assign varName="FaultCodeRequest">
+                        <con5:id xmlns:con5="http://www.bea.com/wli/sb/stages/config">_ActionId-5620955052184608310--63e83776.13e457c6dac.-7fa6</con5:id>
+                        <con4:expr>
+                          <con5:xqueryText xmlns:con5="http://www.bea.com/wli/sb/stages/config">if(data($body/soap-env:Fault/detail/siebelf:siebdetail/siebelf:errorstack/siebelf:error/siebelf:errorsymbol)="") then "000" else data($body/soap-env:Fault/detail/siebelf:siebdetail/siebelf:errorstack/siebelf:error/siebelf:errorsymbol)</con5:xqueryText>
+                        </con4:expr>
+                      </con4:assign>
+                    </con4:actions>
+                  </con4:case>
+                  <con4:default>
+                    <con4:assign varName="FaultCodeRequest">
+                      <con5:id xmlns:con5="http://www.bea.com/wli/sb/stages/config">_ActionId-5620955052184608310--63e83776.13e457c6dac.-7fa5</con5:id>
+                      <con4:expr>
+                        <con5:xqueryText xmlns:con5="http://www.bea.com/wli/sb/stages/config">if(data($body/soap-env:Fault/detail/siebelf:errorstack/siebelf:error/siebelf:errorsymbol)="") then "000" else data($body/soap-env:Fault/detail/siebelf:errorstack/siebelf:error/siebelf:errorsymbol)</con5:xqueryText>
+                      </con4:expr>
+                    </con4:assign>
+                  </con4:default>
+                </con4:ifThenElse>
+                <con4:assign varName="dvmTable">
+                  <con5:id xmlns:con5="http://www.bea.com/wli/sb/stages/config">_ActionId-5620955052184608310--63e83776.13e457c6dac.-7fa4</con5:id>
+                  <con4:expr>
+                    <con5:xqueryText xmlns:con5="http://www.bea.com/wli/sb/stages/config"><![CDATA[<tns:dvm name="country-dvm" xmlns:tns="http://xmlns.oracle.com/dvm" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+  <tns:description>ErrorDVM</tns:description>
+  <tns:columns>
+    <tns:column name="MW"/>
+    <tns:column name="Custom"/>
+  </tns:columns>
+  <tns:rows>
+	     <tns:row>
+	<tns:cell>IDS_EAI_ERR_COMMON_MAX_FIELD_LENGTH_EXCEEDED</tns:cell>
+	<tns:cell>DBD:INVALID ACCOUNT NUMBER</tns:cell>            
+
+</tns:row>
+
+  </tns:rows>
+</tns:dvm>]]></con5:xqueryText>
+                  </con4:expr>
+                </con4:assign>
+                <con4:assign varName="FaultCodeResponse">
+                  <con5:id xmlns:con5="http://www.bea.com/wli/sb/stages/config">_ActionId-5620955052184608310--63e83776.13e457c6dac.-7fa3</con5:id>
+                  <con4:expr>
+                    <con5:xqueryTransform xmlns:con5="http://www.bea.com/wli/sb/stages/config">
+                      <con5:resource ref="Common/transformations/DVMFunction"/>
+                      <con5:param name="sourceValue">
+                        <con5:path>$FaultCodeRequest</con5:path>
+                      </con5:param>
+                      <con5:param name="sourceColumnName">
+                        <con5:path>"MW"</con5:path>
+                      </con5:param>
+                      <con5:param name="targetColumnName">
+                        <con5:path>"Custom"</con5:path>
+                      </con5:param>
+                      <con5:param name="defaultValue">
+                        <con5:path>"11:UNABLE TO PROCESS"</con5:path>
+                      </con5:param>
+                      <con5:param name="dvmTable">
+                        <con5:path>$dvmTable</con5:path>
+                      </con5:param>
+                    </con5:xqueryTransform>
+                  </con4:expr>
+                </con4:assign>
+              </con4:actions>
+            </con4:case>
+            <con4:default>
+              <con4:assign varName="FaultCodeRequest">
+                <con5:id xmlns:con5="http://www.bea.com/wli/sb/stages/config">_ActionId-5620955052184608310--63e83776.13e457c6dac.-7fa2</con5:id>
+                <con4:expr>
+                  <con5:xqueryText xmlns:con5="http://www.bea.com/wli/sb/stages/config">$fault/ctx:errorCode/text()</con5:xqueryText>
+                </con4:expr>
+              </con4:assign>
+              <con4:wsCallout>
+                <con5:id xmlns:con5="http://www.bea.com/wli/sb/stages/config">_ActionId-5620955052184608310--63e83776.13e457c6dac.-7fa1</con5:id>
+                <con4:service ref="Common/proxyservices/CommonErrorHandler" xsi:type="ref:ProxyRef" xmlns:ref="http://www.bea.com/wli/sb/reference"/>
+                <con4:request>
+                  <con4:payload wrapped="false">$FaultCodeRequest</con4:payload>
+                </con4:request>
+                <con4:response>
+                  <con4:payload wrapped="false">FaultCodeResponse</con4:payload>
+                </con4:response>
+                <con4:requestTransform/>
+                <con4:responseTransform/>
+              </con4:wsCallout>
+            </con4:default>
+          </con4:ifThenElse>
+          <con4:assign varName="errorCode" xmlns:con4="http://www.bea.com/wli/sb/stages/transform/config">
+            <con5:id xmlns:con5="http://www.bea.com/wli/sb/stages/config">_ActionId-5620955052184608310--63e83776.13e457c6dac.-7fa0</con5:id>
+            <con4:expr>
+              <con5:xqueryText xmlns:con5="http://www.bea.com/wli/sb/stages/config">fn:substring-before($FaultCodeResponse,":")</con5:xqueryText>
+            </con4:expr>
+          </con4:assign>
+          <con4:assign varName="errorDescription" xmlns:con4="http://www.bea.com/wli/sb/stages/transform/config">
+            <con5:id xmlns:con5="http://www.bea.com/wli/sb/stages/config">_ActionId-5620955052184608310--63e83776.13e457c6dac.-7f9f</con5:id>
+            <con4:expr>
+              <con5:xqueryText xmlns:con5="http://www.bea.com/wli/sb/stages/config">fn:substring-after($FaultCodeResponse,":")</con5:xqueryText>
+            </con4:expr>
+          </con4:assign>
+          <con4:ifThenElse xmlns:con4="http://www.bea.com/wli/sb/stages/transform/config">
+            <con5:id xmlns:con5="http://www.bea.com/wli/sb/stages/config">_ActionId-5620955052184608310--63e83776.13e457c6dac.-7f9e</con5:id>
+            <con4:case>
+              <con4:condition>
+                <con5:xqueryText xmlns:con5="http://www.bea.com/wli/sb/stages/config">$operation="GetCorporateUserProfile"</con5:xqueryText>
+              </con4:condition>
+              <con4:actions>
+                <con4:replace contents-only="true" varName="body">
+                  <con5:id xmlns:con5="http://www.bea.com/wli/sb/stages/config">_ActionId-5620955052184608310--63e83776.13e457c6dac.-7db6</con5:id>
+                  <con4:location>
+                    <con5:xpathText xmlns:con5="http://www.bea.com/wli/sb/stages/config">.</con5:xpathText>
+                  </con4:location>
+                  <con4:expr>
+                    <con5:xqueryText xmlns:con5="http://www.bea.com/wli/sb/stages/config"><![CDATA[<com:AMA_ProfileReadRS Version="12.2">
+	<com:Errors>
+    	<com:Error Type = "21"
+        	ShortText = "{$errorDescription}"
+            Code = "{$errorCode}"> </com:Error>
+    </com:Errors>
+</com:AMA_ProfileReadRS>]]></con5:xqueryText>
+                  </con4:expr>
+                </con4:replace>
+              </con4:actions>
+            </con4:case>
+            <con4:default>
+              <con4:replace varName="body" contents-only="false">
+                <con5:id xmlns:con5="http://www.bea.com/wli/sb/stages/config">_ActionId-5620955052184608310--63e83776.13e457c6dac.-7f9b</con5:id>
+                <con4:location>
+                  <con5:xpathText xmlns:con5="http://www.bea.com/wli/sb/stages/config">./*</con5:xpathText>
+                </con4:location>
+                <con4:expr>
+                  <con5:xqueryText xmlns:con5="http://www.bea.com/wli/sb/stages/config">"No Operation Invoked"</con5:xqueryText>
+                </con4:expr>
+              </con4:replace>
+            </con4:default>
+          </con4:ifThenElse>
+          <con3:alert>
+            <con5:id xmlns:con5="http://www.bea.com/wli/sb/stages/config">_ActionId-5620955052184608310--63e83776.13e457c6dac.-7f9a</con5:id>
+            <con3:destination ref="MemberProfileRetrieve/AlertDestinationForLogging"/>
+            <con3:description>Error Ocurred: Fault Response</con3:description>
+            <con3:severity>critical</con3:severity>
+            <con3:payload>
+              <con5:xqueryText xmlns:con5="http://www.bea.com/wli/sb/stages/config">$body</con5:xqueryText>
+            </con3:payload>
+          </con3:alert>
+          <con5:reply isError="true" xmlns:con5="http://www.bea.com/wli/sb/stages/config">
+            <con5:id>_ActionId-5620955052184608310--63e83776.13e457c6dac.-7f99</con5:id>
+          </con5:reply>
+        </con1:actions>
+      </con:stage>
+    </con:pipeline>
+    <con:pipeline type="error" name="_onErrorHandler-396470764332634078-33233468.13e4fe0c5e2.-7ed6">
+      <con:stage name="Call Salesforce error handle">
+        <con:context>
+          <con1:userNsDecl namespace="http://www.bea.com/wli/sb/stages/transform/config" prefix="con1"/>
+        </con:context>
+        <con:actions>
+          <con4:log>
+            <con1:id>_ActionId-396470764332634078-33233468.13e4fe0c5e2.-7ebd</con1:id>
+            <con4:logLevel>debug</con4:logLevel>
+            <con4:expr>
+              <con1:xsltTransform>
+                <con1:resource ref="partnerServices/Partners_common/transformations/PrettyPrint"/>
+                <con1:input>&lt;r>{$body}
+{$fault}
+&lt;/r></con1:input>
+              </con1:xsltTransform>
+            </con4:expr>
+            <con4:message>Error Call Salesforce corporateUserQuery</con4:message>
+          </con4:log>
+          <con3:assign varName="detail">
+            <con1:id>_ActionId-396470764332634078-33233468.13e4fe0c5e2.-7ebc</con1:id>
+            <con3:expr>
+              <con1:xqueryText>$fault/ctx:details/con1:ReceivedFaultDetail</con1:xqueryText>
+            </con3:expr>
+          </con3:assign>
+          <con3:ifThenElse>
+            <con1:id>_ActionId-396470764332634078-33233468.13e4fe0c5e2.-7ebb</con1:id>
+            <con3:case>
+              <con3:condition>
+                <con1:xqueryText>fn:exists($detail)</con1:xqueryText>
+              </con3:condition>
+              <con3:actions>
+                <con3:assign varName="statusCode">
+                  <con1:id>_ActionId-396470764332634078-33233468.13e4fe0c5e2.-7eb9</con1:id>
+                  <con3:expr>
+                    <con1:xqueryText>data($detail/con1:faultcode)</con1:xqueryText>
+                  </con3:expr>
+                </con3:assign>
+                <con3:assign varName="statusMessage">
+                  <con1:id>_ActionId-396470764332634078-33233468.13e4fe0c5e2.-7eb8</con1:id>
+                  <con3:expr>
+                    <con1:xqueryText>data($detail/con1:faultstring)</con1:xqueryText>
+                  </con3:expr>
+                </con3:assign>
+                <con1:resume>
+                  <con1:id>_ActionId-396470764332634078-33233468.13e4fe0c5e2.-7eb7</con1:id>
+                </con1:resume>
+              </con3:actions>
+            </con3:case>
+            <con3:default>
+              <con3:Error>
+                <con1:id>_ActionId-396470764332634078-33233468.13e4fe0c5e2.-7eb6</con1:id>
+                <con3:errCode>500</con3:errCode>
+                <con3:message>Error in processing</con3:message>
+              </con3:Error>
+            </con3:default>
+          </con3:ifThenElse>
+        </con:actions>
+      </con:stage>
+    </con:pipeline>
+    <con:pipeline type="error" name="_onErrorHandler-396470764332634078-33233468.13e4fe0c5e2.-7e9a">
+      <con:stage name="Get Corporate User Profile response error handler">
+        <con:context>
+          <con1:userNsDecl namespace="http://www.bea.com/wli/sb/stages/transform/config" prefix="con1"/>
+          <con1:userNsDecl namespace="http://www.siebel.com/xml/AYContactInfoIO" prefix="ay"/>
+          <con1:userNsDecl namespace="http://com.finnair" prefix="com"/>
+          <con1:userNsDecl namespace="http://www.bea.com/wli/sb/services/security/config" prefix="con"/>
+          <con1:userNsDecl namespace="http://siebel.com/CustomUI" prefix="cus"/>
+          <con1:userNsDecl namespace="http://soap.sforce.com/schemas/class/PortalServicesUserProfile" prefix="por1"/>
+        </con:context>
+        <con:actions>
+          <con4:log>
+            <con1:id>_ActionId-396470764332634078-33233468.13e4fe0c5e2.-7e91</con1:id>
+            <con4:logLevel>debug</con4:logLevel>
+            <con4:expr>
+              <con1:xsltTransform>
+                <con1:resource ref="partnerServices/Partners_common/transformations/PrettyPrint"/>
+                <con1:input>&lt;r>{$log}
+{$fault}
+&lt;/r></con1:input>
+              </con1:xsltTransform>
+            </con4:expr>
+          </con4:log>
+          <con3:ifThenElse>
+            <con1:id>_ActionId-396470764332634078-33233468.13e4fe0c5e2.-7e90</con1:id>
+            <con3:case>
+              <con3:condition>
+                <con1:xqueryText>fn:exists($getInfoRS)</con1:xqueryText>
+              </con3:condition>
+              <con3:actions>
+                <con3:ifThenElse>
+                  <con1:id>_ActionId-7996207468466675986--46addd60.1412c1bc126.-7fd7</con1:id>
+                  <con3:case>
+                    <con3:condition>
+                      <con1:xqueryConditionExpr>
+                        <con1:compExpr operator="=">
+                          <con1:leftPath>data($getInfoRS/cus:StatusCode)</con1:leftPath>
+                          <con1:rightPath>"CORP101"</con1:rightPath>
+                        </con1:compExpr>
+                      </con1:xqueryConditionExpr>
+                    </con3:condition>
+                    <con3:actions>
+                      <con3:replace varName="body" contents-only="true">
+                        <con1:id>_ActionId-7996207468466675986--46addd60.1412c1bc126.-7fd6</con1:id>
+                        <con3:location>
+                          <con1:xpathText>.</con1:xpathText>
+                        </con3:location>
+                        <con3:expr>
+                          <con1:xqueryText>&lt;com:AMA_ProfileReadRS Version="12.2">
+         &lt;com:Errors>
+         	&lt;Error Type="21" ShortText=" NO PROFILE FOUND MATCHING THIS SEARCH CRITERIA" Code="9.CGG" />
+         &lt;/com:Errors>
+      &lt;/com:AMA_ProfileReadRS></con1:xqueryText>
+                        </con3:expr>
+                      </con3:replace>
+                    </con3:actions>
+                  </con3:case>
+                </con3:ifThenElse>
+              </con3:actions>
+            </con3:case>
+            <con3:default>
+              <con3:Error>
+                <con1:id>_ActionId-396470764332634078-33233468.13e4fe0c5e2.-7e8a</con1:id>
+                <con3:errCode>500</con3:errCode>
+                <con3:message>Error in processing</con3:message>
+              </con3:Error>
+            </con3:default>
+          </con3:ifThenElse>
+          <con1:reply isError="true">
+            <con1:id>_ActionId-7996207468466675986--46addd60.1412c1bc126.-7ea0</con1:id>
+          </con1:reply>
+        </con:actions>
+      </con:stage>
+    </con:pipeline>
+    <con:pipeline type="request" name="Delete Pipeline_request">
+      <con:stage name="Setup">
+        <con:context>
+          <con1:userNsDecl namespace="http://www.bea.com/wli/sb/services/security/config" prefix="con"/>
+        </con:context>
+        <con:actions>
+          <con3:assign varName="startTimestamp" xmlns:con2="http://www.bea.com/wli/sb/stages/logging/config" xmlns:con4="http://www.bea.com/wli/sb/pipeline/config" xmlns:aler="http://www.bea.com/wli/monitoring/alert">
+            <con1:id>_ActionId-4690520408661106075--4c3b2b47.14014880487.-7f45</con1:id>
+            <con3:expr>
+              <con:xqueryText xmlns:con="http://www.bea.com/wli/sb/stages/config">current-dateTime()</con:xqueryText>
+            </con3:expr>
+          </con3:assign>
+        </con:actions>
+      </con:stage>
+      <con:stage name="Get existing info" errorHandler="_onErrorHandler-4690520408661106075--4c3b2b47.14014880487.-7d15">
+        <con:context>
+          <con1:userNsDecl namespace="http://com.finnair" prefix="com"/>
+          <con1:varNsDecl namespace="http://www.example.org/GetCorporateUserProfile/" prefix="get"/>
+        </con:context>
+        <con:actions>
+          <con3:wsCallout>
+            <con1:id>_ActionId-6326623000844977382--472cb4ff.14f93f4e00c.-7c57</con1:id>
+            <con3:service xsi:type="ref:ProxyRef" ref="SalesForce/proxyservices/SalesforceCorporatePortalServices" xmlns:ref="http://www.bea.com/wli/sb/reference"/>
+            <con3:operation>corporateUserQuery</con3:operation>
+            <con3:request>
+              <con3:body>$getInfoRQ</con3:body>
+            </con3:request>
+            <con3:response>
+              <con3:body>getInfoRS</con3:body>
+            </con3:response>
+            <con3:requestTransform>
+              <con3:assign varName="getInfoRQ">
+                <con1:id>_ActionId-6326623000844977382--472cb4ff.14f93f4e00c.-7c59</con1:id>
+                <con3:expr>
+                  <con1:xqueryText><![CDATA[<por:corporateUserQuery xmlns:por="http://soap.sforce.com/schemas/class/PortalServices">
+    <por:request>
+         <por1:ListOfAyContactServicesIo xmlns:por1="http://soap.sforce.com/schemas/class/PortalServicesUserProfile">
+                
+                       <por1:ContactId>{$body/get:DeleteRQ/get:contactId/text()}</por1:ContactId>
+                 
+         </por1:ListOfAyContactServicesIo>
+    </por:request>
+</por:corporateUserQuery>]]></con1:xqueryText>
+                </con3:expr>
+              </con3:assign>
+            </con3:requestTransform>
+            <con3:responseTransform/>
+          </con3:wsCallout>
+        </con:actions>
+      </con:stage>
+      <con:stage name="Call Salesforce" errorHandler="_onErrorHandler-3004770720133324222-4eab63bf.1402e36470a.-7fe5">
+        <con:context>
+          <con1:userNsDecl namespace="http://siebel.com/asi/" prefix="asi"/>
+          <con1:userNsDecl namespace="http://www.siebel.com/xml/AYContactInfoIO" prefix="ayc"/>
+          <con1:userNsDecl namespace="http://com.finnair" prefix="com"/>
+          <con1:userNsDecl namespace="http://soap.sforce.com/schemas/class/PortalServices" prefix="por"/>
+          <con1:userNsDecl namespace="http://soap.sforce.com/schemas/class/PortalServicesUserProfile" prefix="por1"/>
+          <con1:varNsDecl namespace="http://www.example.org/GetCorporateUserProfile/" prefix="get"/>
+        </con:context>
+        <con:actions>
+          <con3:wsCallout>
+            <con1:id>_ActionId-4690520408661106075--4c3b2b47.14014880487.-7d76</con1:id>
+            <con3:service xsi:type="ref:ProxyRef" ref="SalesForce/proxyservices/SalesforceCorporatePortalServices" xmlns:ref="http://www.bea.com/wli/sb/reference"/>
+            <con3:operation>corporateUserProfileUpdate</con3:operation>
+            <con3:request>
+              <con3:body>$deleteRQ</con3:body>
+            </con3:request>
+            <con3:response>
+              <con3:body>deleteRS</con3:body>
+            </con3:response>
+            <con3:requestTransform>
+              <con3:assign varName="deleteRQ">
+                <con1:id>_ActionId-4690520408661106075--4c3b2b47.14014880487.-7d51</con1:id>
+                <con3:expr>
+                  <con1:xqueryText>&lt;por:corporateUserProfileUpdate>
+	 &lt;por:request>
+		{$getInfoRS/por:result/por1:ListOfAyContactServicesIo}
+	&lt;/por:request>	
+&lt;/por:corporateUserProfileUpdate></con1:xqueryText>
+                </con3:expr>
+              </con3:assign>
+              <con1:delete varName="deleteRQ" xmlns:con2="http://www.bea.com/wli/sb/stages/config" xmlns:con3="http://www.bea.com/wli/sb/stages/logging/config" xmlns:con4="http://www.bea.com/wli/sb/typesystem/config" xmlns:con1="http://www.bea.com/wli/sb/stages/transform/config">
+                <con5:id xmlns:con5="http://www.bea.com/wli/sb/stages/config">_ActionId-2520417942293155307--3856c0d9.14ff6266c87.-7fad</con5:id>
+                <con1:location>
+                  <con5:xpathText xmlns:con5="http://www.bea.com/wli/sb/stages/config">./por:request/por1:ListOfAyContactServicesIo/por1:Status/@xsi:nil</con5:xpathText>
+                </con1:location>
+              </con1:delete>
+              <con1:delete varName="deleteRQ" xmlns:con2="http://www.bea.com/wli/sb/stages/config" xmlns:con3="http://www.bea.com/wli/sb/stages/logging/config" xmlns:con4="http://www.bea.com/wli/sb/typesystem/config" xmlns:con1="http://www.bea.com/wli/sb/stages/transform/config">
+                <con5:id xmlns:con5="http://www.bea.com/wli/sb/stages/config">_ActionId-262737709262310403--33e99e1b.1506c3f75b5.-7fc7</con5:id>
+                <con1:location>
+                  <con5:xpathText xmlns:con5="http://www.bea.com/wli/sb/stages/config">./por:request/por1:ListOfAyContactServicesIo/por1:OnlineAccess/@xsi:nil</con5:xpathText>
+                </con1:location>
+              </con1:delete>
+              <con3:replace varName="deleteRQ" contents-only="true">
+                <con1:id>_ActionId-4690520408661106075--4c3b2b47.14014880487.-7d30</con1:id>
+                <con3:location>
+                  <con1:xpathText>./por:request/por1:ListOfAyContactServicesIo/por1:Status</con1:xpathText>
+                </con3:location>
+                <con3:expr>
+                  <con1:xqueryText>"Marked For Deletion"</con1:xqueryText>
+                </con3:expr>
+              </con3:replace>
+              <con3:replace varName="deleteRQ" contents-only="true">
+                <con1:id>_ActionId-262737709262310403--33e99e1b.1506c3f75b5.-7f72</con1:id>
+                <con3:location>
+                  <con1:xpathText>./por:request/por1:ListOfAyContactServicesIo/por1:OnlineAccess</con1:xpathText>
+                </con3:location>
+                <con3:expr>
+                  <con1:xqueryText>"N"</con1:xqueryText>
+                </con3:expr>
+              </con3:replace>
+              <con2:replace varName="deleteRQ" contents-only="true" xmlns:con2="http://www.bea.com/wli/sb/stages/transform/config">
+                <con1:id>_ActionId-7051747109353049693--24e86f3f.150d7052409.-7e9b</con1:id>
+                <con2:location>
+                  <con1:xpathText>./por:request/por1:ListOfAyContactServicesIo/por1:DefaultRole</con1:xpathText>
+                </con2:location>
+                <con2:expr>
+                  <con1:xqueryText>""</con1:xqueryText>
+                </con2:expr>
+              </con2:replace>
+              <con1:delete varName="deleteRQ" xmlns:con2="http://www.bea.com/wli/sb/stages/config" xmlns:con3="http://www.bea.com/wli/sb/stages/logging/config" xmlns:con4="http://www.bea.com/wli/sb/typesystem/config" xmlns:con1="http://www.bea.com/wli/sb/stages/transform/config">
+                <con5:id xmlns:con5="http://www.bea.com/wli/sb/stages/config">_ActionId-7051747109353049693--24e86f3f.150d7052409.-7e47</con5:id>
+                <con1:location>
+                  <con5:xpathText xmlns:con5="http://www.bea.com/wli/sb/stages/config">./por:request/por1:ListOfAyContactServicesIo/por1:DefaultRole/@xsi:nil</con5:xpathText>
+                </con1:location>
+              </con1:delete>
+            </con3:requestTransform>
+            <con3:responseTransform/>
+          </con3:wsCallout>
+        </con:actions>
+      </con:stage>
+    </con:pipeline>
+    <con:pipeline type="response" name="Delete Pipeline_response">
+      <con:stage name="Cleanup">
+        <con:context>
+          <con1:userNsDecl namespace="http://www.bea.com/wli/sb/services/security/config" prefix="con"/>
+          <con1:userNsDecl namespace="http://siebel.com/asi/" prefix="asi"/>
+          <con1:userNsDecl namespace="http://soap.sforce.com/schemas/class/PortalServices" prefix="por"/>
+          <con1:userNsDecl namespace="http://soap.sforce.com/schemas/class/PortalServicesUserProfile" prefix="por1"/>
+        </con:context>
+        <con:actions>
+          <con3:replace varName="body" contents-only="true">
+            <con1:id>_ActionId-4690520408661106075--4c3b2b47.14014880487.-7d16</con1:id>
+            <con3:location>
+              <con1:xpathText>.</con1:xpathText>
+            </con3:location>
+            <con3:expr>
+              <con1:xqueryText><![CDATA[<DeleteRS>
+  <StatusCode>{$deleteRS/por:result/por1:StatusCode/text()}</StatusCode>
+  <StatusMessage>{$deleteRS/por:result/por1:StatusMessage/text()}</StatusMessage>
+</DeleteRS>]]></con1:xqueryText>
+            </con3:expr>
+          </con3:replace>
+        </con:actions>
+      </con:stage>
+      <con:stage name="Monitoring">
+        <con:comment/>
+        <con5:context xmlns:con="http://www.bea.com/wli/sb/stages/config" xmlns:con3="http://www.bea.com/wli/sb/pipeline/config" xmlns:con2="http://www.bea.com/wli/sb/stages/transform/config" xmlns:con5="http://www.bea.com/wli/sb/pipeline/config" xmlns:con4="http://www.bea.com/wli/sb/stages/alert/config" xmlns:aler="http://www.bea.com/wli/monitoring/alert" xmlns:con1="http://www.bea.com/wli/sb/typesystem/config">
+          <con6:varNsDecl prefix="com" namespace="http://com.finnair" xmlns:con6="http://www.bea.com/wli/sb/stages/config"/>
+          <con6:varNsDecl prefix="prof" namespace="http://com.finnair/profileProcessing/" xmlns:con6="http://www.bea.com/wli/sb/stages/config"/>
+        </con5:context>
+        <con5:actions xmlns:con="http://www.bea.com/wli/sb/stages/config" xmlns:con3="http://www.bea.com/wli/sb/pipeline/config" xmlns:con2="http://www.bea.com/wli/sb/stages/transform/config" xmlns:con5="http://www.bea.com/wli/sb/pipeline/config" xmlns:con4="http://www.bea.com/wli/sb/stages/alert/config" xmlns:aler="http://www.bea.com/wli/monitoring/alert" xmlns:con1="http://www.bea.com/wli/sb/typesystem/config">
+          <con4:route xmlns:con4="http://www.bea.com/wli/sb/stages/publish/config">
+            <con6:id xmlns:con6="http://www.bea.com/wli/sb/stages/config">_ActionId-4690520408661106075--4c3b2b47.14014880487.-7eae</con6:id>
+            <con4:service ref="GoogleAnalytics/businessservice/Monitoring" xsi:type="ref:BusinessServiceRef" xmlns:ref="http://www.bea.com/wli/sb/reference"/>
+            <con4:operation>monitor</con4:operation>
+            <con4:outboundTransform>
+              <con2:replace varName="body" contents-only="true">
+                <con6:id xmlns:con6="http://www.bea.com/wli/sb/stages/config">_ActionId-4690520408661106075--4c3b2b47.14014880487.-7ead</con6:id>
+                <con2:location>
+                  <con6:xpathText xmlns:con6="http://www.bea.com/wli/sb/stages/config">.</con6:xpathText>
+                </con2:location>
+                <con2:expr>
+                  <con6:xqueryTransform xmlns:con6="http://www.bea.com/wli/sb/stages/config">
+                    <con6:resource ref="GoogleAnalytics/transformations/XQ_Req_Monitoring"/>
+                    <con6:param name="startTimestamp">
+                      <con6:path>$startTimestamp</con6:path>
+                    </con6:param>
+                    <con6:param name="inbound">
+                      <con6:path>$inbound</con6:path>
+                    </con6:param>
+                  </con6:xqueryTransform>
+                </con2:expr>
+              </con2:replace>
+            </con4:outboundTransform>
+          </con4:route>
+          <con1:reply xmlns:con3="http://www.bea.com/wli/sb/stages/transform/config" xmlns:con="http://www.bea.com/wli/sb/pipeline/config" xmlns:con2="http://www.bea.com/wli/sb/typesystem/config" xmlns:con4="http://www.bea.com/wli/sb/stages/logging/config" xmlns:con1="http://www.bea.com/wli/sb/stages/config">
+            <con1:id>_ActionId-4690520408661106075--4c3b2b47.14014880487.-7eac</con1:id>
+          </con1:reply>
+        </con5:actions>
+      </con:stage>
+    </con:pipeline>
+    <con:pipeline type="request" name="Update Pipeline_request">
+      <con:stage name="Setup">
+        <con:context>
+          <con1:userNsDecl namespace="http://www.bea.com/wli/sb/services/security/config" prefix="con"/>
+          <con1:varNsDecl namespace="http://com.finnair" prefix="com"/>
+        </con:context>
+        <con:actions>
+          <con3:assign varName="startTimestamp" xmlns:con2="http://www.bea.com/wli/sb/stages/logging/config" xmlns:con4="http://www.bea.com/wli/sb/pipeline/config" xmlns:aler="http://www.bea.com/wli/monitoring/alert">
+            <con1:id>_ActionId-4690520408661106075--4c3b2b47.14014880487.-7e31</con1:id>
+            <con3:expr>
+              <con:xqueryText xmlns:con="http://www.bea.com/wli/sb/stages/config">current-dateTime()</con:xqueryText>
+            </con3:expr>
+          </con3:assign>
+          <con3:assign varName="AMA_update">
+            <con1:id>_ActionId-3616446600721019522--2fae579c.1407707d039.-7f38</con1:id>
+            <con3:expr>
+              <con1:xqueryText>$body/com:AMA_UpdateRQ</con1:xqueryText>
+            </con3:expr>
+          </con3:assign>
+        </con:actions>
+      </con:stage>
+      <con:stage name="Get existing info" errorHandler="_onErrorHandler-5126123792025034041--4ef50694.14071574d5f.-7fd4">
+        <con:context>
+          <con1:varNsDecl namespace="http://www.example.org/GetCorporateUserProfile/" prefix="get"/>
+          <con1:varNsDecl namespace="http://com.finnair" prefix="com"/>
+        </con:context>
+        <con:actions>
+          <con3:wsCallout>
+            <con1:id>_ActionId-5126123792025034041--4ef50694.14071574d5f.-7fe6</con1:id>
+            <con3:service xsi:type="ref:ProxyRef" ref="SalesForce/proxyservices/SalesforceCorporatePortalServices" xmlns:ref="http://www.bea.com/wli/sb/reference"/>
+            <con3:operation>corporateUserQuery</con3:operation>
+            <con3:request>
+              <con3:body>$getInfoRQ</con3:body>
+            </con3:request>
+            <con3:response>
+              <con3:body>getInfoRS</con3:body>
+            </con3:response>
+            <con3:requestTransform>
+              <con3:assign varName="getInfoRQ">
+                <con1:id>_ActionId-5126123792025034041--4ef50694.14071574d5f.-7fe8</con1:id>
+                <con3:expr>
+                  <con1:xqueryText><![CDATA[<por:corporateUserQuery xmlns:por="http://soap.sforce.com/schemas/class/PortalServices">
+    <por:request>
+         <por1:ListOfAyContactServicesIo xmlns:por1="http://soap.sforce.com/schemas/class/PortalServicesUserProfile">
+                
+                       <por1:CorpUsername>{data($AMA_update/com:UniqueID[1]/@ID)}</por1:CorpUsername>
+                 
+         </por1:ListOfAyContactServicesIo>
+    </por:request>
+</por:corporateUserQuery>]]></con1:xqueryText>
+                </con3:expr>
+              </con3:assign>
+            </con3:requestTransform>
+            <con3:responseTransform/>
+          </con3:wsCallout>
+        </con:actions>
+      </con:stage>
+      <con:stage name="Call Salsesfoce" errorHandler="_onErrorHandler-5126123792025034041--4ef50694.14071574d5f.-7fb4">
+        <con:context>
+          <con1:userNsDecl namespace="http://soap.sforce.com/schemas/class/PortalServices" prefix="por"/>
+          <con1:userNsDecl namespace="http://soap.sforce.com/schemas/class/PortalServicesUserProfile" prefix="por1"/>
+          <con1:varNsDecl namespace="http://www.siebel.com/xml/AYContactInfoIO" prefix="ayc"/>
+          <con1:varNsDecl namespace="http://siebel.com/asi/" prefix="asi"/>
+          <con2:variable name="updateRQ" path="$updateRQ" asChild="false">
+            <con2:wsdl ref="SiebelInterfaces/wsdl/AY Contact Info User Services" element="asi:Updateu_Input" xmlns:asi="http://siebel.com/asi/"/>
+          </con2:variable>
+        </con:context>
+        <con:actions>
+          <con3:wsCallout>
+            <con1:id>_ActionId-5126123792025034041--4ef50694.14071574d5f.-7fbc</con1:id>
+            <con3:service xsi:type="ref:ProxyRef" ref="SalesForce/proxyservices/SalesforceCorporatePortalServices" xmlns:ref="http://www.bea.com/wli/sb/reference"/>
+            <con3:operation>corporateUserProfileUpdate</con3:operation>
+            <con3:request>
+              <con3:body>$updateRQ</con3:body>
+            </con3:request>
+            <con3:response>
+              <con3:body>updateRS</con3:body>
+            </con3:response>
+            <con3:requestTransform>
+              <con3:assign varName="updateRQ">
+                <con1:id>_ActionId-3616446600721019522--2fae579c.1407707d039.-7f5b</con1:id>
+                <con3:expr>
+                  <con1:xqueryTransform>
+                    <con1:resource ref="CorporateUserProfile/transformations/Req_Update_salesforce"/>
+                    <con1:param name="update">
+                      <con1:path>$getInfoRS</con1:path>
+                    </con1:param>
+                    <con1:param name="AMA_update">
+                      <con1:path>$AMA_update</con1:path>
+                    </con1:param>
+                  </con1:xqueryTransform>
+                </con3:expr>
+              </con3:assign>
+              <con3:ifThenElse>
+                <con1:id>_ActionId-1349390671056046713-253cecd7.14080656228.-7d1c</con1:id>
+                <con3:case>
+                  <con3:condition>
+                    <con1:xqueryText>fn:string-length($updateRQ/por1:Nationality/text()) gt 0</con1:xqueryText>
+                  </con3:condition>
+                  <con3:actions>
+                    <con3:assign varName="nationalities">
+                      <con1:id>_ActionId-1349390671056046713-253cecd7.14080656228.-7d1a</con1:id>
+                      <con3:expr>
+                        <con1:xqueryTransform>
+                          <con1:resource ref="Common/transformations/NationalitiesDVM"/>
+                        </con1:xqueryTransform>
+                      </con3:expr>
+                    </con3:assign>
+                    <con3:replace varName="updateRQ" contents-only="true">
+                      <con1:id>_ActionId-1349390671056046713-253cecd7.14080656228.-7d02</con1:id>
+                      <con3:location>
+                        <con1:xpathText>./por1:Nationality</con1:xpathText>
+                      </con3:location>
+                      <con3:expr>
+                        <con1:xqueryTransform>
+                          <con1:resource ref="Common/transformations/DVMFunction"/>
+                          <con1:param name="targetColumnName">
+                            <con1:path>"Siebel Citizenship value"</con1:path>
+                          </con1:param>
+                          <con1:param name="defaultValue">
+                            <con1:path>""</con1:path>
+                          </con1:param>
+                          <con1:param name="dvmTable">
+                            <con1:path>$nationalities</con1:path>
+                          </con1:param>
+                          <con1:param name="sourceColumnName">
+                            <con1:path>"ISO-3166-1 alpha-2"</con1:path>
+                          </con1:param>
+                          <con1:param name="sourceValue">
+                            <con1:path>data($updateRQ/por1:Nationality)</con1:path>
+                          </con1:param>
+                        </con1:xqueryTransform>
+                      </con3:expr>
+                    </con3:replace>
+                  </con3:actions>
+                </con3:case>
+              </con3:ifThenElse>
+              <con3:assign varName="updateRQ">
+                <con1:id>_ActionId-5126123792025034041--4ef50694.14071574d5f.-7fbe</con1:id>
+                <con3:expr>
+                  <con1:xqueryText>&lt;por:corporateUserProfileUpdate>
+         &lt;por:request>
+    		{$updateRQ}
+    	&lt;/por:request>
+&lt;/por:corporateUserProfileUpdate></con1:xqueryText>
+                </con3:expr>
+              </con3:assign>
+            </con3:requestTransform>
+            <con3:responseTransform/>
+          </con3:wsCallout>
+        </con:actions>
+      </con:stage>
+    </con:pipeline>
+    <con:pipeline type="response" name="Update Pipeline_response">
+      <con:stage name="Prepare response">
+        <con:context>
+          <con1:userNsDecl namespace="http://com.finnair" prefix="com"/>
+          <con1:userNsDecl namespace="http://soap.sforce.com/schemas/class/PortalServices" prefix="por"/>
+          <con1:userNsDecl namespace="http://soap.sforce.com/schemas/class/PortalServicesUserProfile" prefix="por1"/>
+          <con1:varNsDecl namespace="http://www.siebel.com/xml/AYContactInfoIO" prefix="ayc"/>
+          <con1:varNsDecl namespace="http://siebel.com/asi/" prefix="asi"/>
+          <con2:variable name="updateRS" path="$updateRS" asChild="false">
+            <con2:wsdl ref="SiebelInterfaces/wsdl/AY Contact Info User Services" element="asi:Updateu_Output" xmlns:asi="http://siebel.com/asi/"/>
+          </con2:variable>
+        </con:context>
+        <con:actions>
+          <con3:ifThenElse>
+            <con1:id>_ActionId-1349390671056046713-253cecd7.14080656228.-7db0</con1:id>
+            <con3:case>
+              <con3:condition>
+                <con1:xqueryText>fn:lower-case(data($updateRS/por:result/por1:StatusCode)) = "ok"</con1:xqueryText>
+              </con3:condition>
+              <con3:actions>
+                <con3:replace varName="body" contents-only="true">
+                  <con1:id>_ActionId-1349390671056046713-253cecd7.14080656228.-7d86</con1:id>
+                  <con3:location>
+                    <con1:xpathText>.</con1:xpathText>
+                  </con3:location>
+                  <con3:expr>
+                    <con1:xqueryText>&lt;com:AMA_UpdateRS>
+         &lt;com:Success/>
+&lt;/com:AMA_UpdateRS></con1:xqueryText>
+                  </con3:expr>
+                </con3:replace>
+              </con3:actions>
+            </con3:case>
+            <con3:default>
+              <con4:log>
+                <con1:id>_ActionId-1349390671056046713-253cecd7.14080656228.-7d76</con1:id>
+                <con4:logLevel>debug</con4:logLevel>
+                <con4:expr>
+                  <con1:xqueryText>fn:concat($updateRS/por:result/por1:StatusCode/text(), ": ", $updateRS/por:result/por1:StatusMessage/text())</con1:xqueryText>
+                </con4:expr>
+                <con4:message>Error update user</con4:message>
+              </con4:log>
+              <con3:replace varName="body" contents-only="true">
+                <con1:id>_ActionId-1349390671056046713-253cecd7.14080656228.-7d9e</con1:id>
+                <con3:location>
+                  <con1:xpathText>.</con1:xpathText>
+                </con3:location>
+                <con3:expr>
+                  <con1:xqueryText>&lt;com:AMA_UpdateRS>
+         &lt;com:Errors>
+         	&lt;Error Type="21" ShortText="UNABLE TO PROCESS" Code="11" />
+         &lt;/com:Errors>
+&lt;/com:AMA_UpdateRS></con1:xqueryText>
+                </con3:expr>
+              </con3:replace>
+            </con3:default>
+          </con3:ifThenElse>
+        </con:actions>
+      </con:stage>
+      <con:stage name="Monitoring">
+        <con:comment/>
+        <con5:context xmlns:con="http://www.bea.com/wli/sb/stages/config" xmlns:con3="http://www.bea.com/wli/sb/pipeline/config" xmlns:con2="http://www.bea.com/wli/sb/stages/transform/config" xmlns:con5="http://www.bea.com/wli/sb/pipeline/config" xmlns:con4="http://www.bea.com/wli/sb/stages/alert/config" xmlns:aler="http://www.bea.com/wli/monitoring/alert" xmlns:con1="http://www.bea.com/wli/sb/typesystem/config">
+          <con6:varNsDecl prefix="com" namespace="http://com.finnair" xmlns:con6="http://www.bea.com/wli/sb/stages/config"/>
+          <con6:varNsDecl prefix="prof" namespace="http://com.finnair/profileProcessing/" xmlns:con6="http://www.bea.com/wli/sb/stages/config"/>
+        </con5:context>
+        <con5:actions xmlns:con="http://www.bea.com/wli/sb/stages/config" xmlns:con3="http://www.bea.com/wli/sb/pipeline/config" xmlns:con2="http://www.bea.com/wli/sb/stages/transform/config" xmlns:con5="http://www.bea.com/wli/sb/pipeline/config" xmlns:con4="http://www.bea.com/wli/sb/stages/alert/config" xmlns:aler="http://www.bea.com/wli/monitoring/alert" xmlns:con1="http://www.bea.com/wli/sb/typesystem/config">
+          <con4:route xmlns:con4="http://www.bea.com/wli/sb/stages/publish/config">
+            <con6:id xmlns:con6="http://www.bea.com/wli/sb/stages/config">_ActionId-4690520408661106075--4c3b2b47.14014880487.-7e2d</con6:id>
+            <con4:service ref="GoogleAnalytics/businessservice/Monitoring" xsi:type="ref:BusinessServiceRef" xmlns:ref="http://www.bea.com/wli/sb/reference"/>
+            <con4:operation>monitor</con4:operation>
+            <con4:outboundTransform>
+              <con2:replace varName="body" contents-only="true">
+                <con6:id xmlns:con6="http://www.bea.com/wli/sb/stages/config">_ActionId-4690520408661106075--4c3b2b47.14014880487.-7e2c</con6:id>
+                <con2:location>
+                  <con6:xpathText xmlns:con6="http://www.bea.com/wli/sb/stages/config">.</con6:xpathText>
+                </con2:location>
+                <con2:expr>
+                  <con6:xqueryTransform xmlns:con6="http://www.bea.com/wli/sb/stages/config">
+                    <con6:resource ref="GoogleAnalytics/transformations/XQ_Req_Monitoring"/>
+                    <con6:param name="startTimestamp">
+                      <con6:path>$startTimestamp</con6:path>
+                    </con6:param>
+                    <con6:param name="inbound">
+                      <con6:path>$inbound</con6:path>
+                    </con6:param>
+                  </con6:xqueryTransform>
+                </con2:expr>
+              </con2:replace>
+            </con4:outboundTransform>
+          </con4:route>
+          <con1:reply xmlns:con3="http://www.bea.com/wli/sb/stages/transform/config" xmlns:con="http://www.bea.com/wli/sb/pipeline/config" xmlns:con2="http://www.bea.com/wli/sb/typesystem/config" xmlns:con4="http://www.bea.com/wli/sb/stages/logging/config" xmlns:con1="http://www.bea.com/wli/sb/stages/config">
+            <con1:id>_ActionId-4690520408661106075--4c3b2b47.14014880487.-7e2b</con1:id>
+          </con1:reply>
+        </con5:actions>
+      </con:stage>
+    </con:pipeline>
+    <con:pipeline type="request" name="Insert Pipeline_request">
+      <con:stage name="Setup">
+        <con:context>
+          <con1:userNsDecl namespace="http://www.bea.com/wli/sb/services/security/config" prefix="con"/>
+          <con1:varNsDecl namespace="http://com.finnair" prefix="com"/>
+        </con:context>
+        <con:actions>
+          <con3:assign varName="startTimestamp" xmlns:con2="http://www.bea.com/wli/sb/stages/logging/config" xmlns:con4="http://www.bea.com/wli/sb/pipeline/config" xmlns:aler="http://www.bea.com/wli/monitoring/alert">
+            <con1:id>_ActionId-4690520408661106075--4c3b2b47.14014880487.-7db0</con1:id>
+            <con3:expr>
+              <con:xqueryText xmlns:con="http://www.bea.com/wli/sb/stages/config">current-dateTime()</con:xqueryText>
+            </con3:expr>
+          </con3:assign>
+          <con3:assign varName="AMA_insert">
+            <con1:id>_ActionId-1349390671056046713-253cecd7.14080656228.-7d64</con1:id>
+            <con3:expr>
+              <con1:xqueryText>$body/com:AMA_ProfileCreateRQ</con1:xqueryText>
+            </con3:expr>
+          </con3:assign>
+        </con:actions>
+      </con:stage>
+      <con:stage name="Insert to Salesforce" errorHandler="_onErrorHandler-3252325043323719521-26b2fa5b.1409f75d08b.-7f6d">
+        <con:context>
+          <con1:userNsDecl namespace="http://www.siebel.com/xml/AYContactInfoIO" prefix="ayc"/>
+          <con1:userNsDecl namespace="http://siebel.com/asi/" prefix="asi"/>
+          <con1:userNsDecl namespace="http://soap.sforce.com/schemas/class/PortalServices" prefix="por"/>
+          <con1:userNsDecl namespace="http://soap.sforce.com/schemas/class/PortalServicesUserProfile" prefix="por1"/>
+        </con:context>
+        <con:actions>
+          <con3:wsCallout>
+            <con1:id>_ActionId-1349390671056046713-253cecd7.14080656228.-7cec</con1:id>
+            <con3:service xsi:type="ref:ProxyRef" ref="SalesForce/proxyservices/SalesforceCorporatePortalServices" xmlns:ref="http://www.bea.com/wli/sb/reference"/>
+            <con3:operation>corporateUserCreation</con3:operation>
+            <con3:request>
+              <con3:body>$insertRQ</con3:body>
+            </con3:request>
+            <con3:response>
+              <con3:body>insertRS</con3:body>
+            </con3:response>
+            <con3:requestTransform>
+              <con3:assign varName="insertRQ">
+                <con1:id>_ActionId-3252325043323719521-26b2fa5b.1409f75d08b.-7faa</con1:id>
+                <con3:expr>
+                  <con1:xqueryTransform>
+                    <con1:resource ref="CorporateUserProfile/transformations/Req_Insert_salesforce"/>
+                    <con1:param name="AMA_create">
+                      <con1:path>$AMA_insert</con1:path>
+                    </con1:param>
+                  </con1:xqueryTransform>
+                </con3:expr>
+              </con3:assign>
+              <con3:ifThenElse>
+                <con1:id>_ActionId-3252325043323719521-26b2fa5b.1409f75d08b.-7fa6</con1:id>
+                <con3:case>
+                  <con3:condition>
+                    <con1:xqueryText>fn:string-length($insertRQ/por1:Nationality/text()) gt 0</con1:xqueryText>
+                  </con3:condition>
+                  <con3:actions>
+                    <con3:assign varName="nationalities">
+                      <con1:id>_ActionId-3252325043323719521-26b2fa5b.1409f75d08b.-7fa5</con1:id>
+                      <con3:expr>
+                        <con1:xqueryTransform>
+                          <con1:resource ref="Common/transformations/NationalitiesDVM"/>
+                        </con1:xqueryTransform>
+                      </con3:expr>
+                    </con3:assign>
+                    <con3:replace varName="insertRQ" contents-only="true">
+                      <con1:id>_ActionId-3252325043323719521-26b2fa5b.1409f75d08b.-7fa4</con1:id>
+                      <con3:location>
+                        <con1:xpathText>./por1:Nationality</con1:xpathText>
+                      </con3:location>
+                      <con3:expr>
+                        <con1:xqueryTransform>
+                          <con1:resource ref="Common/transformations/DVMFunction"/>
+                          <con1:param name="targetColumnName">
+                            <con1:path>"Siebel Citizenship value"</con1:path>
+                          </con1:param>
+                          <con1:param name="defaultValue">
+                            <con1:path>""</con1:path>
+                          </con1:param>
+                          <con1:param name="dvmTable">
+                            <con1:path>$nationalities</con1:path>
+                          </con1:param>
+                          <con1:param name="sourceColumnName">
+                            <con1:path>"ISO-3166-1 alpha-2"</con1:path>
+                          </con1:param>
+                          <con1:param name="sourceValue">
+                            <con1:path>data($insertRQ/por1:Nationality)</con1:path>
+                          </con1:param>
+                        </con1:xqueryTransform>
+                      </con3:expr>
+                    </con3:replace>
+                  </con3:actions>
+                </con3:case>
+              </con3:ifThenElse>
+              <con3:assign varName="insertRQ">
+                <con1:id>_ActionId-2189079135354840814--601c1517.140a6003694.-7fcc</con1:id>
+                <con3:expr>
+                  <con1:xqueryText>&lt;por:corporateUserCreation>
+    &lt;por:request>
+		{ $insertRQ }
+	&lt;/por:request>
+&lt;/por:corporateUserCreation></con1:xqueryText>
+                </con3:expr>
+              </con3:assign>
+            </con3:requestTransform>
+            <con3:responseTransform/>
+          </con3:wsCallout>
+        </con:actions>
+      </con:stage>
+    </con:pipeline>
+    <con:pipeline type="response" name="Insert Pipeline_response">
+      <con:stage name="Prepare response">
+        <con:context>
+          <con1:userNsDecl namespace="http://com.finnair" prefix="com"/>
+          <con1:userNsDecl namespace="http://soap.sforce.com/schemas/class/PortalServicesUserProfile" prefix="por1"/>
+          <con1:userNsDecl namespace="http://soap.sforce.com/schemas/class/PortalServices" prefix="por"/>
+          <con1:varNsDecl namespace="http://www.siebel.com/xml/AYContactInfoIO" prefix="ayc"/>
+          <con1:varNsDecl namespace="http://siebel.com/asi/" prefix="asi"/>
+          <con2:variable name="insertRS" path="$insertRS" asChild="false">
+            <con2:wsdl ref="SiebelInterfaces/wsdl/AY Contact Info User Services" element="asi:Inserti_Output" xmlns:asi="http://siebel.com/asi/"/>
+          </con2:variable>
+        </con:context>
+        <con:actions>
+          <con3:ifThenElse>
+            <con1:id>_ActionId-3252325043323719521-26b2fa5b.1409f75d08b.-7f08</con1:id>
+            <con3:case>
+              <con3:condition>
+                <con1:xqueryText>fn:lower-case(data($insertRS/por:result/por1:StatusCode)) = "ok"</con1:xqueryText>
+              </con3:condition>
+              <con3:actions>
+                <con3:assign varName="contactId">
+                  <con1:id>_ActionId-327168896419048547-328cc60d.14203664a83.-7e39</con1:id>
+                  <con3:expr>
+                    <con1:xqueryText>data($insertRS/por:result/por1:ListOfAyContactServicesIo/por1:ContactId)</con1:xqueryText>
+                  </con3:expr>
+                </con3:assign>
+                <con3:assign varName="username">
+                  <con1:id>_ActionId-327168896419048547-328cc60d.14203664a83.-7e1b</con1:id>
+                  <con3:expr>
+                    <con1:xqueryText>data($insertRS/por:result/por1:ListOfAyContactServicesIo/por1:CorpUsername)</con1:xqueryText>
+                  </con3:expr>
+                </con3:assign>
+                <con3:replace varName="body" contents-only="true">
+                  <con1:id>_ActionId-3252325043323719521-26b2fa5b.1409f75d08b.-7ee6</con1:id>
+                  <con3:location>
+                    <con1:xpathText>.</con1:xpathText>
+                  </con3:location>
+                  <con3:expr>
+                    <con1:xqueryText>&lt;com:AMA_ProfileCreateRS Version="12.2">
+         &lt;com:Success/>
+         &lt;com:UniqueID Type="21" ID_Context="CRM" ID="{ $contactId }" />
+         &lt;com:UniqueID Type="21" ID_Context="Portal" ID="{ $username }" />
+&lt;/com:AMA_ProfileCreateRS></con1:xqueryText>
+                  </con3:expr>
+                </con3:replace>
+              </con3:actions>
+            </con3:case>
+            <con3:default>
+              <con4:log>
+                <con1:id>_ActionId-3252325043323719521-26b2fa5b.1409f75d08b.-7f02</con1:id>
+                <con4:logLevel>debug</con4:logLevel>
+                <con4:expr>
+                  <con1:xqueryText>fn:concat($updateRS/por:result/por1:StatusCode/text(), ": ", $updateRS/por:result/por1:StatusMessage/text())</con1:xqueryText>
+                </con4:expr>
+                <con4:message>Error from Salesforce Inserting User</con4:message>
+              </con4:log>
+              <con3:replace varName="body" contents-only="true">
+                <con1:id>_ActionId-3252325043323719521-26b2fa5b.1409f75d08b.-7f01</con1:id>
+                <con3:location>
+                  <con1:xpathText>.</con1:xpathText>
+                </con3:location>
+                <con3:expr>
+                  <con1:xqueryText>&lt;com:AMA_ProfileCreateRS>
+         &lt;com:Errors>
+         	&lt;Error Type="21" ShortText="UNABLE TO PROCESS" Code="11" />
+         &lt;/com:Errors>
+&lt;/com:AMA_ProfileCreateRS></con1:xqueryText>
+                </con3:expr>
+              </con3:replace>
+            </con3:default>
+          </con3:ifThenElse>
+        </con:actions>
+      </con:stage>
+      <con:stage name="Monitoring">
+        <con:comment/>
+        <con5:context xmlns:con="http://www.bea.com/wli/sb/stages/config" xmlns:con3="http://www.bea.com/wli/sb/pipeline/config" xmlns:con2="http://www.bea.com/wli/sb/stages/transform/config" xmlns:con5="http://www.bea.com/wli/sb/pipeline/config" xmlns:con4="http://www.bea.com/wli/sb/stages/alert/config" xmlns:aler="http://www.bea.com/wli/monitoring/alert" xmlns:con1="http://www.bea.com/wli/sb/typesystem/config">
+          <con6:varNsDecl prefix="com" namespace="http://com.finnair" xmlns:con6="http://www.bea.com/wli/sb/stages/config"/>
+          <con6:varNsDecl prefix="prof" namespace="http://com.finnair/profileProcessing/" xmlns:con6="http://www.bea.com/wli/sb/stages/config"/>
+        </con5:context>
+        <con5:actions xmlns:con="http://www.bea.com/wli/sb/stages/config" xmlns:con3="http://www.bea.com/wli/sb/pipeline/config" xmlns:con2="http://www.bea.com/wli/sb/stages/transform/config" xmlns:con5="http://www.bea.com/wli/sb/pipeline/config" xmlns:con4="http://www.bea.com/wli/sb/stages/alert/config" xmlns:aler="http://www.bea.com/wli/monitoring/alert" xmlns:con1="http://www.bea.com/wli/sb/typesystem/config">
+          <con4:route xmlns:con4="http://www.bea.com/wli/sb/stages/publish/config">
+            <con6:id xmlns:con6="http://www.bea.com/wli/sb/stages/config">_ActionId-4690520408661106075--4c3b2b47.14014880487.-7dac</con6:id>
+            <con4:service ref="GoogleAnalytics/businessservice/Monitoring" xsi:type="ref:BusinessServiceRef" xmlns:ref="http://www.bea.com/wli/sb/reference"/>
+            <con4:operation>monitor</con4:operation>
+            <con4:outboundTransform>
+              <con2:replace varName="body" contents-only="true">
+                <con6:id xmlns:con6="http://www.bea.com/wli/sb/stages/config">_ActionId-4690520408661106075--4c3b2b47.14014880487.-7dab</con6:id>
+                <con2:location>
+                  <con6:xpathText xmlns:con6="http://www.bea.com/wli/sb/stages/config">.</con6:xpathText>
+                </con2:location>
+                <con2:expr>
+                  <con6:xqueryTransform xmlns:con6="http://www.bea.com/wli/sb/stages/config">
+                    <con6:resource ref="GoogleAnalytics/transformations/XQ_Req_Monitoring"/>
+                    <con6:param name="startTimestamp">
+                      <con6:path>$startTimestamp</con6:path>
+                    </con6:param>
+                    <con6:param name="inbound">
+                      <con6:path>$inbound</con6:path>
+                    </con6:param>
+                  </con6:xqueryTransform>
+                </con2:expr>
+              </con2:replace>
+            </con4:outboundTransform>
+          </con4:route>
+          <con1:reply xmlns:con3="http://www.bea.com/wli/sb/stages/transform/config" xmlns:con="http://www.bea.com/wli/sb/pipeline/config" xmlns:con2="http://www.bea.com/wli/sb/typesystem/config" xmlns:con4="http://www.bea.com/wli/sb/stages/logging/config" xmlns:con1="http://www.bea.com/wli/sb/stages/config">
+            <con1:id>_ActionId-4690520408661106075--4c3b2b47.14014880487.-7daa</con1:id>
+          </con1:reply>
+        </con5:actions>
+      </con:stage>
+    </con:pipeline>
+    <con:pipeline type="error" name="_onErrorHandler-4690520408661106075--4c3b2b47.14014880487.-7d15">
+      <con:stage name="Get existing profile error">
+        <con:context>
+          <con1:userNsDecl namespace="http://soap.sforce.com/schemas/class/PortalServices" prefix="por"/>
+          <con1:userNsDecl namespace="http://soap.sforce.com/schemas/class/PortalServicesUserProfile" prefix="por1"/>
+        </con:context>
+        <con:actions>
+          <con4:log>
+            <con1:id>_ActionId-4690520408661106075--4c3b2b47.14014880487.-7d0a</con1:id>
+            <con4:logLevel>debug</con4:logLevel>
+            <con4:expr>
+              <con1:xsltTransform>
+                <con1:resource ref="partnerServices/Partners_common/transformations/PrettyPrint"/>
+                <con1:input>&lt;r>{$log}
+{$fault}
+&lt;/r></con1:input>
+              </con1:xsltTransform>
+            </con4:expr>
+          </con4:log>
+          <con3:replace varName="body">
+            <con1:id>_ActionId-3004770720133324222-4eab63bf.1402e36470a.-7fe6</con1:id>
+            <con3:location>
+              <con1:xpathText>.</con1:xpathText>
+            </con3:location>
+            <con3:expr>
+              <con1:xqueryText><![CDATA[<DeleteRS>
+  <StatusCode>{$deleteRS/por:result/por1:StatusCode/text()}</StatusCode>
+  <StatusMessage>{$deleteRS/por:result/por1:StatusMessage/text()}</StatusMessage>
+</DeleteRS>]]></con1:xqueryText>
+            </con3:expr>
+          </con3:replace>
+          <con1:reply isError="false">
+            <con1:id>_ActionId-3004770720133324222-4eab63bf.1402e36470a.-7fc8</con1:id>
+          </con1:reply>
+        </con:actions>
+      </con:stage>
+    </con:pipeline>
+    <con:pipeline type="error" name="_onErrorHandler-3004770720133324222-4eab63bf.1402e36470a.-7fe5">
+      <con:stage name="Delete from Siebel error">
+        <con:context>
+          <con1:userNsDecl namespace="http://soap.sforce.com/schemas/class/PortalServicesUserProfile" prefix="por1"/>
+          <con1:userNsDecl namespace="http://soap.sforce.com/schemas/class/PortalServices" prefix="por"/>
+        </con:context>
+        <con:actions>
+          <con4:log>
+            <con1:id>_ActionId-3004770720133324222-4eab63bf.1402e36470a.-7fe0</con1:id>
+            <con4:logLevel>debug</con4:logLevel>
+            <con4:expr>
+              <con1:xsltTransform>
+                <con1:resource ref="partnerServices/Partners_common/transformations/PrettyPrint"/>
+                <con1:input>&lt;r>{$log}
+{$fault}
+&lt;/r></con1:input>
+              </con1:xsltTransform>
+            </con4:expr>
+          </con4:log>
+          <con3:replace varName="body">
+            <con1:id>_ActionId-3004770720133324222-4eab63bf.1402e36470a.-7fdf</con1:id>
+            <con3:location>
+              <con1:xpathText>.</con1:xpathText>
+            </con3:location>
+            <con3:expr>
+              <con1:xqueryText><![CDATA[<DeleteRS>
+  <StatusCode>{$deleteRS/por:result/por1:StatusCode/text()}</StatusCode>
+  <StatusMessage>{$deleteRS/por:result/por1:StatusMessage/text()}</StatusMessage>
+</DeleteRS>]]></con1:xqueryText>
+            </con3:expr>
+          </con3:replace>
+          <con1:reply isError="true">
+            <con1:id>_ActionId-3004770720133324222-4eab63bf.1402e36470a.-7fb9</con1:id>
+          </con1:reply>
+        </con:actions>
+      </con:stage>
+    </con:pipeline>
+    <con:pipeline type="error" name="_onErrorHandler-5126123792025034041--4ef50694.14071574d5f.-7fd4">
+      <con:stage name="Get existing profile error">
+        <con:context>
+          <con1:userNsDecl namespace="http://com.finnair" prefix="com"/>
+        </con:context>
+        <con:actions>
+          <con4:log>
+            <con1:id>_ActionId-5126123792025034041--4ef50694.14071574d5f.-7fcd</con1:id>
+            <con4:logLevel>debug</con4:logLevel>
+            <con4:expr>
+              <con1:xsltTransform>
+                <con1:resource ref="partnerServices/Partners_common/transformations/PrettyPrint"/>
+                <con1:input>&lt;r>{$log}
+{$fault}
+&lt;/r></con1:input>
+              </con1:xsltTransform>
+            </con4:expr>
+          </con4:log>
+          <con3:replace varName="body" contents-only="true">
+            <con1:id>_ActionId-5126123792025034041--4ef50694.14071574d5f.-7fcc</con1:id>
+            <con3:location>
+              <con1:xpathText>.</con1:xpathText>
+            </con3:location>
+            <con3:expr>
+              <con1:xqueryText>&lt;com:AMA_UpdateRS>
+         &lt;com:Errors>
+         	&lt;Error Type="21" ShortText=" NO PROFILE FOUND MATCHING THIS SEARCH CRITERIA" Code="9.CGG" />
+         &lt;/com:Errors>
+&lt;/com:AMA_UpdateRS></con1:xqueryText>
+            </con3:expr>
+          </con3:replace>
+          <con1:reply isError="true">
+            <con1:id>_ActionId-5126123792025034041--4ef50694.14071574d5f.-7fcb</con1:id>
+          </con1:reply>
+        </con:actions>
+      </con:stage>
+    </con:pipeline>
+    <con:pipeline type="error" name="_onErrorHandler-5126123792025034041--4ef50694.14071574d5f.-7fb4">
+      <con:stage name="Update error">
+        <con:context>
+          <con1:userNsDecl namespace="http://com.finnair" prefix="com"/>
+        </con:context>
+        <con:actions>
+          <con4:log>
+            <con1:id>_ActionId-5126123792025034041--4ef50694.14071574d5f.-7fb0</con1:id>
+            <con4:logLevel>debug</con4:logLevel>
+            <con4:expr>
+              <con1:xsltTransform>
+                <con1:resource ref="partnerServices/Partners_common/transformations/PrettyPrint"/>
+                <con1:input>&lt;r>{$log}
+{$fault}
+&lt;/r></con1:input>
+              </con1:xsltTransform>
+            </con4:expr>
+          </con4:log>
+          <con3:replace varName="body" contents-only="true">
+            <con1:id>_ActionId-5126123792025034041--4ef50694.14071574d5f.-7faf</con1:id>
+            <con3:location>
+              <con1:xpathText>.</con1:xpathText>
+            </con3:location>
+            <con3:expr>
+              <con1:xqueryText>&lt;com:AMA_UpdateRS>
+         &lt;com:Errors>
+         	&lt;Error Type="21" ShortText="UNABLE TO PROCESS" Code="11" />
+         &lt;/com:Errors>
+&lt;/com:AMA_UpdateRS></con1:xqueryText>
+            </con3:expr>
+          </con3:replace>
+          <con1:reply isError="true">
+            <con1:id>_ActionId-5126123792025034041--4ef50694.14071574d5f.-7fae</con1:id>
+          </con1:reply>
+        </con:actions>
+      </con:stage>
+    </con:pipeline>
+    <con:pipeline type="error" name="_onErrorHandler-3252325043323719521-26b2fa5b.1409f75d08b.-7f6d">
+      <con:stage name="Insert to Corp User to Siebel error">
+        <con:context>
+          <con1:userNsDecl namespace="http://com.finnair" prefix="com"/>
+        </con:context>
+        <con:actions>
+          <con4:log>
+            <con1:id>_ActionId-3252325043323719521-26b2fa5b.1409f75d08b.-7f66</con1:id>
+            <con4:logLevel>error</con4:logLevel>
+            <con4:expr>
+              <con1:xsltTransform>
+                <con1:resource ref="partnerServices/Partners_common/transformations/PrettyPrint"/>
+                <con1:input>&lt;r>{$log}
+{$fault}
+&lt;/r></con1:input>
+              </con1:xsltTransform>
+            </con4:expr>
+          </con4:log>
+          <con3:replace varName="body" contents-only="true">
+            <con1:id>_ActionId-3252325043323719521-26b2fa5b.1409f75d08b.-7f2c</con1:id>
+            <con3:location>
+              <con1:xpathText>.</con1:xpathText>
+            </con3:location>
+            <con3:expr>
+              <con1:xqueryText>&lt;com:AMA_ProfileCreateRS>
+         &lt;com:Errors>
+         	&lt;Error Type="21" ShortText="UNABLE TO PROCESS" Code="11" />
+         &lt;/com:Errors>
+&lt;/com:AMA_ProfileCreateRS></con1:xqueryText>
+            </con3:expr>
+          </con3:replace>
+          <con1:reply isError="true">
+            <con1:id>_ActionId-3252325043323719521-26b2fa5b.1409f75d08b.-7f65</con1:id>
+          </con1:reply>
+        </con:actions>
+      </con:stage>
+    </con:pipeline>
+    <con:flow>
+      <con:branch-node type="operation" name="Corporate User Profile">
+        <con:context/>
+        <con:branch-table>
+          <con:branch name="GetCorporateUserProfile">
+            <con:operator>equals</con:operator>
+            <con:value/>
+            <con:flow>
+              <con:pipeline-node name="GetCorporateUserProfile pipeline">
+                <con:request>GetCorporateUserProfile pipeline_request</con:request>
+                <con:response>GetCorporateUserProfile pipeline_response</con:response>
+              </con:pipeline-node>
+            </con:flow>
+          </con:branch>
+          <con:branch name="Delete">
+            <con:operator>equals</con:operator>
+            <con:value/>
+            <con:flow>
+              <con:pipeline-node name="Delete Pipeline">
+                <con:request>Delete Pipeline_request</con:request>
+                <con:response>Delete Pipeline_response</con:response>
+              </con:pipeline-node>
+            </con:flow>
+          </con:branch>
+          <con:branch name="Update">
+            <con:operator>equals</con:operator>
+            <con:value/>
+            <con:flow>
+              <con:pipeline-node name="Update Pipeline">
+                <con:request>Update Pipeline_request</con:request>
+                <con:response>Update Pipeline_response</con:response>
+              </con:pipeline-node>
+            </con:flow>
+          </con:branch>
+          <con:branch name="Insert">
+            <con:operator>equals</con:operator>
+            <con:value/>
+            <con:flow>
+              <con:pipeline-node name="Insert Pipeline">
+                <con:request>Insert Pipeline_request</con:request>
+                <con:response>Insert Pipeline_response</con:response>
+              </con:pipeline-node>
+            </con:flow>
+          </con:branch>
+          <con:default-branch>
+            <con:flow/>
+          </con:default-branch>
+        </con:branch-table>
+      </con:branch-node>
+    </con:flow>
+  </ser:router>
+</xml-fragment>
